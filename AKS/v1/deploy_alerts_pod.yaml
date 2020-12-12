@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alerts
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alerts
+  template:
+    metadata:
+      labels:
+        app: alerts
+    spec:
+      containers:
+      - name: alerts
+        image: appinsightsdp.azurecr.io/msalerts:10
+        env:
+        - name: ServiceBus__ConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: alertssecrets # the name of the Kubernetes secret containing the data
+              key: SERVICEBUSCONNECTIONSTRING # the key inside the Kubernetes secret containing the data
+        - name: ServiceBus__TopicName
+          value: "messagebusaks"
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          valueFrom:
+            secretKeyRef:
+              name: alertssecrets # the name of the Kubernetes secret containing the data
+              key: APPINSIGHTS_INSTRUMENTATIONKEY # the key inside the Kubernetes secret containing the data
+        - name: SQLServer__ConnectionString
+          value: "Server=tcp:appinsights.database.windows.net,1433;Initial Catalog=Alerts;Persist Security Info=False;User ID=vsalis;Password=AbcABC123!@#;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80

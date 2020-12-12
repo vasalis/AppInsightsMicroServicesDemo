@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backoffice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backoffice
+  template:
+    metadata:
+      labels:
+        app: backoffice
+    spec:
+      containers:
+      - name: backoffice
+        image: appinsightsdp.azurecr.io/msbackoffice:10
+        env:
+        - name: ServiceBusConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: backofficesecrets # the name of the Kubernetes secret containing the data
+              key: SERVICEBUSCONNECTIONSTRING # the key inside the Kubernetes secret containing the data
+        - name: ServiceBusTopicName
+          value: "messagebusaks"
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          valueFrom:
+            secretKeyRef:
+              name: backofficesecrets # the name of the Kubernetes secret containing the data
+              key: APPINSIGHTS_INSTRUMENTATIONKEY # the key inside the Kubernetes secret containing the data
+        - name: StorageConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: backofficesecrets # the name of the Kubernetes secret containing the data
+              key: STORAGECONNECTIONSTRING
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80

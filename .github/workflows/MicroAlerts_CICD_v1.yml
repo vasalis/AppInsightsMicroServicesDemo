@@ -1,0 +1,77 @@
+name: CI_CD__Alerts_Microservice
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'BackEnd/MicroAlerts/MicroAlerts/**'
+      - '.github/workflows/MicroAlerts_CICD_v1.yml'
+      - 'AKS/v1/deploy_alerts**' 
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  Build_and_deploy_to_ACR:
+    runs-on: ubuntu-latest
+    env:
+      workDir: ./BackEnd         
+    steps:
+    - uses: actions/checkout@v2    
+    - name: Docker Build Alerts Microservice
+      run: |
+        docker build -t ${{ secrets.CONTAINER_REGISTRY }}/msalerts:${{ github.run_number }} -f ${{env.workDir}}/MicroAlerts/MicroAlerts/Dockerfile ${{env.workDir}}
+    - name: ACR authentication    
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.CONTAINER_REGISTRY }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}  
+    - name: Docker Build & Push to ACR      
+      run: |
+        docker push ${{ secrets.CONTAINER_REGISTRY }}/msalerts:${{ github.run_number }}    
+    
+  Deploy_to_App_Service:
+    needs: Build_and_deploy_to_ACR
+    runs-on: ubuntu-latest
+    env:      
+      MSALERTS_WEBAPP_NAME: appinsightsmsalerts
+    steps:
+      - name: Azure authentication
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: 'Deploy to Azure Web App for Container'      
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.MSALERTS_WEBAPP_NAME }} 
+          images: ${{ secrets.CONTAINER_REGISTRY }}/msalerts:${{ github.run_number }}
+          slot-name: 'production'
+  
+  Deploy_to_AKS:
+    needs: Build_and_deploy_to_ACR
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v2        
+      - name: 'Login to AKS Cluster'
+        uses: azure/aks-set-context@v1
+        with:
+            creds: '${{ secrets.AZURE_CREDENTIALS }}'
+            resource-group: '${{ secrets.AKS_RESOURCE_GROUP_NAME }}'
+            cluster-name: '${{ secrets.AKS_CLUSTER_NAME }}'
+        id: login
+      - uses: azure/k8s-create-secret@v1
+        with:
+          namespace: 'default'
+          secret-type: 'generic'
+          arguments:  --from-literal=SERVICEBUSCONNECTIONSTRING=${{ secrets.AKS_SERVICE_BUS_CONNECTIONSTRING }} --from-literal=APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.AKS_ALERTS_AI_KEY }} --from-literal=SQLSERVERCONNECTIONSTRING=${{ secrets.AKS_SQL_SERVER_CONNECTION_STRING }}
+          secret-name: alertssecrets
+      - name: 'Deploy Alerts Microservice to AKS Cluster'
+        uses: azure/k8s-deploy@v1.3                    
+        with:        
+          manifests: |
+              ./AKS/v1/deploy_alerts_pod.yaml
+              ./AKS/v1/deploy_alerts_service.yaml
+          images: '${{ secrets.CONTAINER_REGISTRY }}/msalerts:${{ github.run_number }}'          
+          kubectl-version: 'latest'
+        
+        

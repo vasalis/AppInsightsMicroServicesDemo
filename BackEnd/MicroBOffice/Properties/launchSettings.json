@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "MicroBOffice": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 33142,
+      "useSSL": false
+    }
+  }
+}

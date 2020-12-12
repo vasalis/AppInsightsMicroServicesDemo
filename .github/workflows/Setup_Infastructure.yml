@@ -1,0 +1,131 @@
+name: IaC_Setup_infrastructure
+
+on:
+  push:
+    branches: [ main ]
+    paths:      
+      - '.github/workflows/Setup_Infastructure.yml'
+      - 'IaC/**'      
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  Create_PaaS_Infra:
+    runs-on: ubuntu-latest
+    env:
+      RESOURCE_GROUP_NAME: 'AppInsightsMicroservices_RG'
+      AZURE_REGION: 'westeurope'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        enable-AzPSSession: true 
+    - name: 'Run Setup PaaS powershell'
+      shell: pwsh
+      run: IaC/PaaS_Infra.ps1
+      id: SetupPaaS    
+    - name: 'Create GitHub Secret for Service Bus for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_SERVICE_BUS_CONNECTIONSTRING
+        value: ${{ steps.SetupPaaS.outputs.TMP_SERVICEBUS_CON }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for Cosmos for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_COSMOS_CONNECTIONSTRING
+        value: ${{ steps.SetupPaaS.outputs.TMP_COSMOS_CON }}
+        pa_token: ${{ secrets.PA_TOKEN }}    
+    - name: 'Create GitHub Secret for Cosmos Db name for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_COSMOS_DB_NAME
+        value:  ${{ steps.SetupPaaS.outputs.TMP_COSMOS_DB_NAME }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for Cosmos Container name for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_COSMOS_CONTAINER_NAME
+        value: ${{ steps.SetupPaaS.outputs.TMP_COSMOS_CONTAINER_NAME }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for Cosmos Partition key name for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_COSMOS_PARTITION_KEY
+        value: ${{ steps.SetupPaaS.outputs.TMP_COSMOS_PARTITION_KEY }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for ACR for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: CONTAINER_REGISTRY
+        value: ${{ steps.SetupPaaS.outputs.TMP_ACR_NAME }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for ACR Username for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: REGISTRY_USERNAME
+        value: ${{ steps.SetupPaaS.outputs.TMP_ACR_USER_NAME }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for ACR password for CI/CD pipelines'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: REGISTRY_PASSWORD
+        value: ${{ steps.SetupPaaS.outputs.TMP_ACR_PASSWORD }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+  Create_AKS_Infra:
+    needs: Create_PaaS_Infra
+    env:
+      RESOURCE_GROUP_NAME: 'AppInsightsMicroservices_RG'
+      AZURE_REGION: 'westeurope'
+      SP_ID: ${{secrets.AKS_SERVICE_PRINCIPAL_ID}}    
+      SP_SECRET: ${{secrets.AKS_SERVICE_PRINCIPAL_SECRET}}    
+    runs-on: ubuntu-latest    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        enable-AzPSSession: true 
+    - name: 'Run Setup PaaS powershell'
+      shell: pwsh
+      run: IaC/AKS_Infra.ps1
+      id: SetupAKS
+    - name: 'Create GitHub Secret for AKS Resource Group'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_RESOURCE_GROUP_NAME
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_RESOURCE_GROUP }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS ApiGW AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_APIGW_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_APIGW }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS Alerts AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_ALERTS_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_ALERTS }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS Devices AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_DEVICES_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_DEVICES }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS Back Office AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_BACK_OFFICE_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_BACK_OFFICE }}
+        pa_token: ${{ secrets.PA_TOKEN }}    
+    - name: 'Create GitHub Secret for AKS Resource Group'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_CLUSTER_NAME
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_CLUSTER_NAME }}
+        pa_token: ${{ secrets.PA_TOKEN }}

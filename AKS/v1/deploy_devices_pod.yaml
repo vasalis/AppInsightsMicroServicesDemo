@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devices
+spec:  
+  selector:
+    matchLabels:
+      app: devices
+  template:
+    metadata:
+      labels:
+        app: devices
+    spec:
+      containers:
+      - name: devices
+        image: appinsightsdp.azurecr.io/msdevices:10
+        resources:
+          requests:            
+            cpu: "1000m"
+          limits:            
+            cpu: "1000m"
+        env:
+        - name: ServiceBusConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: devicessecrets # the name of the Kubernetes secret containing the data
+              key: SERVICEBUSCONNECTIONSTRING # the key inside the Kubernetes secret containing the data
+        - name: ServiceBusTopicName
+          value: "messagebusaks"
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          valueFrom:
+            secretKeyRef:
+              name: devicessecrets # the name of the Kubernetes secret containing the data
+              key: APPINSIGHTS_INSTRUMENTATIONKEY # the key inside the Kubernetes secret containing the data
+        - name: CosmosConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: devicessecrets # the name of the Kubernetes secret containing the data
+              key: CosmosConnectionString # the key inside the Kubernetes secret containing the data
+        - name: CosmosDbName
+          valueFrom:
+            secretKeyRef:
+              name: devicessecrets # the name of the Kubernetes secret containing the data
+              key: CosmosDbName # the key inside the Kubernetes secret containing the data
+        - name: CosmosDbContainerName
+          valueFrom:
+            secretKeyRef:
+              name: devicessecrets # the name of the Kubernetes secret containing the data
+              key: CosmosDbContainerName # the key inside the Kubernetes secret containing the data
+        - name: CosmosDbPartitionKey
+          valueFrom:
+            secretKeyRef:
+              name: devicessecrets # the name of the Kubernetes secret containing the data
+              key: CosmosDbPartitionKey # the key inside the Kubernetes secret containing the data
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80

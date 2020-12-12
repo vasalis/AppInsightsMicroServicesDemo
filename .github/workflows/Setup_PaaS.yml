@@ -1,0 +1,26 @@
+name: CI_CD__Devices_Microservice
+
+on:
+  push:
+    branches: [ IaC ]
+    paths:      
+      - '.github/workflows/Setup_PaaS.yml'
+      - 'IaC/PaaS_Infra.ps1' 
+  pull_request:
+    branches: [ IaC ]
+
+jobs:
+  Create_PaaS_Infra:
+    runs-on: ubuntu-latest
+    env:
+      scriptPath: .github/workflows/Setup_PaaS.yml      
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        enable-AzPSSession: true 
+    - name: 'Run Setup PaaS powershell'
+      shell: pwsh
+      run: IaC/PaaS_Infra.ps1

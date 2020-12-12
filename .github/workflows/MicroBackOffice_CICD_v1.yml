@@ -1,0 +1,87 @@
+name: CI_CD__Back_Office_Microservice
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'BackEnd/MicroBOffice/**'
+      - '.github/workflows/MicroBackOffice_CICD_v1.yml'
+      - 'AKS/v1/deploy_backoffice**'   
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  Build_and_deploy_to_AzureFunctions:
+    runs-on: ubuntu-latest
+    env:
+      workDir: ./BackEnd
+      AZURE_FUNCTIONAPP_NAME: appinsightsmsboffice  # set this to your application's name
+      AZURE_FUNCTIONAPP_PACKAGE_PATH: './BackEnd/MicroBOffice'    # set this to the path to your web app project, defaults to the repository root
+      DOTNET_VERSION: '3.1.x'      
+    steps:
+    - uses: actions/checkout@v2    
+    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: 'Resolve Project Dependencies Using Dotnet'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        dotnet build --configuration Release --output ./output
+        popd
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'        
+    
+  Build_and_deploy_to_ACR:
+    runs-on: ubuntu-latest
+    env:
+      workDir: ./BackEnd         
+    steps:
+    - uses: actions/checkout@v2    
+    - name: Docker Build backoffice Microservice
+      run: |
+        docker build -t ${{ secrets.CONTAINER_REGISTRY }}/msbackoffice:${{ github.run_number }} -f ${{env.workDir}}/MicroBOffice/Dockerfile ${{env.workDir}}
+    - name: ACR authentication    
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.CONTAINER_REGISTRY }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}  
+    - name: Docker Build & Push to ACR      
+      run: |
+        docker push ${{ secrets.CONTAINER_REGISTRY }}/msbackoffice:${{ github.run_number }}
+  
+  Deploy_to_AKS:
+    needs: Build_and_deploy_to_ACR
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v2        
+      - name: 'Login to AKS Cluster'
+        uses: azure/aks-set-context@v1
+        with:
+            creds: '${{ secrets.AZURE_CREDENTIALS }}'
+            resource-group: '${{ secrets.AKS_RESOURCE_GROUP_NAME }}'
+            cluster-name: '${{ secrets.AKS_CLUSTER_NAME }}'
+        id: login
+      - uses: azure/k8s-create-secret@v1
+        with:
+          namespace: 'default'
+          secret-type: 'generic'
+          arguments:  --from-literal=SERVICEBUSCONNECTIONSTRING=${{ secrets.AKS_SERVICE_BUS_CONNECTIONSTRING }} --from-literal=APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.AKS_BACK_OFFICE_AI_KEY }} --from-literal=STORAGECONNECTIONSTRING=${{ secrets.AKS_STORAGE_CONNECTIONSTRING }}
+          secret-name: backofficesecrets
+      - name: 'Deploy backoffice Microservice to AKS Cluster'
+        uses: azure/k8s-deploy@v1.3                    
+        with:        
+          manifests: |
+              ./AKS/v1/deploy_backoffice_pod.yaml              
+          images: '${{ secrets.CONTAINER_REGISTRY }}/msbackoffice:${{ github.run_number }}'          
+          kubectl-version: 'latest'     

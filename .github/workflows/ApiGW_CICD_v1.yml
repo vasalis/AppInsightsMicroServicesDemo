@@ -1,0 +1,77 @@
+name: CI_CD__API_Gateway
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'BackEnd/ApiGateway/**'
+      - '.github/workflows/ApiGW_CICD_v1.yml'
+      - 'AKS/v1/deploy_apigw**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  Build_and_deploy_to_ACR:
+    runs-on: ubuntu-latest
+    env:
+      workDir: ./BackEnd      
+    steps:
+    - uses: actions/checkout@v2    
+    - name: Docker Build API Gateway
+      run: |
+        docker build -t ${{ secrets.CONTAINER_REGISTRY }}/apigw:${{ github.run_number }} -f ${{env.workDir}}/ApiGateway/Dockerfile ${{env.workDir}}
+    - name: ACR authentication    
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.CONTAINER_REGISTRY }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}  
+    - name: Docker Build & Push to ACR      
+      run: |
+        docker push ${{ secrets.CONTAINER_REGISTRY }}/apigw:${{ github.run_number }}    
+    
+  Deploy_to_App_Service:
+    needs: Build_and_deploy_to_ACR
+    runs-on: ubuntu-latest
+    env:      
+      APIGW_WEBAPP_NAME: appinsightsapigw
+    steps:
+      - name: Azure authentication
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: 'Deploy to Azure Web App for Container'      
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.APIGW_WEBAPP_NAME }} 
+          images: ${{ secrets.CONTAINER_REGISTRY }}/apigw:${{ github.run_number }}
+          slot-name: 'production'
+  
+  Deploy_to_AKS:
+    needs: Build_and_deploy_to_ACR
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v2      
+      - name: 'Login to AKS Cluster'
+        uses: azure/aks-set-context@v1
+        with:
+            creds: '${{ secrets.AZURE_CREDENTIALS }}'
+            resource-group: '${{ secrets.AKS_RESOURCE_GROUP_NAME }}'
+            cluster-name: '${{ secrets.AKS_CLUSTER_NAME }}'
+        id: login
+      - uses: azure/k8s-create-secret@v1
+        with:
+          namespace: 'default'
+          secret-type: 'generic'
+          arguments:  --from-literal=APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.AKS_APIGW_AI_KEY }}
+          secret-name: apigwsecrets
+      - name: 'Deploy ApiGW to AKS Cluster'
+        uses: azure/k8s-deploy@v1.3                    
+        with:        
+          manifests: |
+              ./AKS/v1/deploy_apigw_pod.yaml
+              ./AKS/v1/deploy_apigw_service.yaml
+          images: '${{ secrets.CONTAINER_REGISTRY }}/apigw:${{ github.run_number }}'          
+          kubectl-version: 'latest'
+        
+        
