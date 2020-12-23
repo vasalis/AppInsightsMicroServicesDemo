@@ -2,7 +2,7 @@ name: IaC_Setup_infrastructure
 
 on:
   push:
-    branches: [ main ]
+    branches: [ IaC_SQL ]
     paths:      
       - '.github/workflows/Setup_Infastructure.yml'
       - 'IaC/**'      
@@ -13,8 +13,8 @@ jobs:
   Create_PaaS_Infra:
     runs-on: ubuntu-latest
     env:
-      RESOURCE_GROUP_NAME: 'AppInsightsMicroservices_RG'
-      AZURE_REGION: 'westeurope'
+      RESOURCE_GROUP_NAME: 'todeletepaas_RG'
+      AZURE_REGION: 'northeurope'
     steps:
     - uses: actions/checkout@v2
     - name: Login via Az module
