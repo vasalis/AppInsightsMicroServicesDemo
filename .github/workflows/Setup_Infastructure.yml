@@ -80,7 +80,7 @@ jobs:
   Create_AKS_Infra:
     needs: Create_PaaS_Infra
     env:
-      RESOURCE_GROUP_NAME: 'Microservices_RG'
+      RESOURCE_GROUP_NAME: 'MyMicroservices_Demo_RG'
       AZURE_REGION: 'ukwest'
       SP_ID: ${{secrets.AKS_SERVICE_PRINCIPAL_ID}}    
       SP_SECRET: ${{secrets.AKS_SERVICE_PRINCIPAL_SECRET}}    
