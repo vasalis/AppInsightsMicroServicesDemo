@@ -6,8 +6,11 @@ $azureRegion = $env:AZURE_REGION
 Write-Host "(Got from ENV): RG: " $resourceGroupName " location: "  $azureRegion 
 Write-Host "Environment Azure CL: " az --version
 
+# Project prefix
+$deploymentPrefix = $resourceGroupName.substring(0,4)
+
 # Azure Container Registry variables
-$acrName = $resourceGroupName + 'acr'
+$acrName = ($deploymentPrefix + 'acr').ToLower()
 
 # Application Insights Instances variables
 $apiGwAiName = 'aks-apigwai'
@@ -16,7 +19,6 @@ $devicesAiName = 'aks-devicesai'
 $backofficeAiName = 'aks-backofficeai'
 
 # AKS variables
-$deploymentPrefix = $resourceGroupName.substring(0,4)
 $SUBNET_NAME= $resourceGroupName +'aks-subnet'
 $VNET_NAME= $resourceGroupName + 'aks-vnet'
 $AKS_CLUSTER_NAME=($deploymentPrefix + '-aks').ToLower()
