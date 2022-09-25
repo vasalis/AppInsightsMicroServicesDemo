@@ -15,7 +15,7 @@ $cosmosDbContainerName = 'Devices'
 $cosmosDbPartitionKey = '/category'
 
 # Azure SQL Database variables
-$SQLServername = $deploymentPrefix + 'sqlsrv'
+$SQLServername = 'microsqlsrv'
 $SQLDbName = 'Alerts'
 $SQLlogin="AdminLogin"
 $SQLPassword="TODO-ChangeThisAsap123"
