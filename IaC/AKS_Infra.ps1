@@ -16,9 +16,10 @@ $devicesAiName = 'aks-devicesai'
 $backofficeAiName = 'aks-backofficeai'
 
 # AKS variables
+$deploymentPrefix = $resourceGroupName.substring(0,4)
 $SUBNET_NAME= $resourceGroupName +'aks-subnet'
 $VNET_NAME= $resourceGroupName + 'aks-vnet'
-$AKS_CLUSTER_NAME=$resourceGroupName +'-aks'
+$AKS_CLUSTER_NAME=($deploymentPrefix + '-aks').ToLower()
 
 # Monitor
 $WORKSPACE=$resourceGroupName +'-LogsWorkspace'
