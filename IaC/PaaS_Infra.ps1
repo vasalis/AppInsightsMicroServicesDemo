@@ -21,7 +21,7 @@ $SQLlogin="AdminLogin"
 $SQLPassword="TODO-ChangeThisAsap123"
 
 # Service Bus Related variables
-$serviceBusNameSpace = 'paasNaks-service-bus'
+$serviceBusNameSpace = 'aksNpaas-service-bus'
 $serviceBusMessageBusTopicNamePaaS = 'paasmessagebus'
 $serviceBusMessageBusTopicNameAks = 'aksmessagebus'
 
