@@ -13,7 +13,7 @@ jobs:
   Create_PaaS_Infra:
     runs-on: ubuntu-latest
     env:
-      RESOURCE_GROUP_NAME: 'Microservices_PaaS_RG'
+      RESOURCE_GROUP_NAME: 'microservices_PaaS_RG'
       AZURE_REGION: 'northeurope'
     steps:
     - uses: actions/checkout@v2

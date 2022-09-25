@@ -8,14 +8,14 @@ Write-Host "(Got from ENV): RG: " $resourceGroupName " location: "  $azureRegion
 Write-Host "Environment Azure CL: " az --version
 
 # Cosmos Related variables
-$storageAccountName = $deploymentPrefix + 'storage'
+$storageAccountName = ($deploymentPrefix + 'storage').ToLower()
 $cosmosDbAccount = $deploymentPrefix + 'cosmosdb'
 $cosmosDbName = 'DevicesDatabase'
 $cosmosDbContainerName = 'Devices'
 $cosmosDbPartitionKey = '/category'
 
 # Azure SQL Database variables
-$SQLServername = 'microsqlsrv'
+$SQLServername = ($deploymentPrefix + 'sqlsrv').ToLower()
 $SQLDbName = 'Alerts'
 $SQLlogin="AdminLogin"
 $SQLPassword="TODO-ChangeThisAsap123"
