@@ -78,7 +78,7 @@ jobs:
     needs: Create_PaaS_Infra
     env:
       RESOURCE_GROUP_NAME: 'Microservice_AKS_RG'
-      AZURE_REGION: 'westuk'
+      AZURE_REGION: 'ukwest'
       SP_ID: ${{secrets.AKS_SERVICE_PRINCIPAL_ID}}    
       SP_SECRET: ${{secrets.AKS_SERVICE_PRINCIPAL_SECRET}}    
     runs-on: ubuntu-latest    
@@ -89,7 +89,7 @@ jobs:
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
         enable-AzPSSession: true 
-    - name: 'Run Setup PaaS powershell'
+    - name: 'Run Setup AKS powershell'
       shell: pwsh
       run: IaC/AKS_Infra.ps1
       id: SetupAKS
