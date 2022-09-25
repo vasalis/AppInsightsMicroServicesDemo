@@ -2,36 +2,44 @@
 # Resource Group and Azure Region variables
 $resourceGroupName = $env:RESOURCE_GROUP_NAME
 $azureRegion = $env:AZURE_REGION
+# Use this to have unique name on every component - you can modify differently if needed.
+$deploymentPrefix = $resourceGroupName.substring(0,4)
 Write-Host "(Got from ENV): RG: " $resourceGroupName " location: "  $azureRegion 
 Write-Host "Environment Azure CL: " az --version
 
 # Cosmos Related variables
-$storageAccountName = $resourceGroupName + 'storage'
-$cosmosDbAccount = $resourceGroupName + 'cosmosdb'
+$storageAccountName = ($deploymentPrefix + 'storage').ToLower()
+$cosmosDbAccount = ($deploymentPrefix + 'cosmosdb').ToLower()
 $cosmosDbName = 'DevicesDatabase'
 $cosmosDbContainerName = 'Devices'
 $cosmosDbPartitionKey = '/category'
 
+# Azure SQL Database variables
+$SQLServername = ($deploymentPrefix + 'sqlsrv').ToLower()
+$SQLDbName = 'Alerts'
+$SQLlogin="AdminLogin"
+$SQLPassword="TODO-ChangeThisAsap123"
+
 # Service Bus Related variables
-$serviceBusNameSpace = 'paasNaks-service-bus'
+$serviceBusNameSpace = 'aksNpaas-service-bus'
 $serviceBusMessageBusTopicNamePaaS = 'paasmessagebus'
 $serviceBusMessageBusTopicNameAks = 'aksmessagebus'
 
 # Functions related variables
-$functionDevicesName = $resourceGroupName + 'paasdevices'
+$functionDevicesName = $deploymentPrefix + 'paasdevices'
 $functionDevicesAiName ='paas-devicesai'
-$functionBackOfficeName = $resourceGroupName + 'paasboffice'
+$functionBackOfficeName = $deploymentPrefix + 'paasboffice'
 $functionBackOfficeAiName ='paas-backofficeai'
 
 # Azure Container Registry variables
-$acrName = $resourceGroupName + 'acr'
+$acrName = ($deploymentPrefix + 'acr').ToLower()
 
 # Web Apps Related Variables
 $apiGwServicePlanName = 'apigwsp'
 $alertsServicePlanName = 'alertssp'
-$apiGwWebAppName = $resourceGroupName + 'apigw'
+$apiGwWebAppName = $deploymentPrefix + 'apigw'
 $apiGwAiName = 'paas-apigwai'
-$alertsWebAppName = $resourceGroupName + 'alerts'
+$alertsWebAppName = $deploymentPrefix + 'alerts'
 $alertsAiName = 'paas-alertsai'
 
 #---------------------------------------- Execution Part -----------------------------------------------------------#
@@ -58,15 +66,24 @@ $cosmosPrimaryKey = az cosmosdb keys list --name $cosmosDbAccount --resource-gro
 # create connection string
 $cosmosConString = "AccountEndpoint=https://"+$cosmosDbAccount+".documents.azure.com:443/;AccountKey="+$cosmosPrimaryKey
 
+# Create the Azure SQL Database
+az sql server create --name $SQLServername --resource-group $resourceGroupName --location $azureRegion --admin-user $SQLlogin --admin-password $SQLPassword
+# Setup the db
+az sql db create --resource-group $resourceGroupName --server $SQLServername --name $SQLDbName --edition GeneralPurpose --family Gen5 --capacity 2 --zone-redundant false
+
+# Create the storage account to be used for Functions
+Write-Host 'About to create storage: ' $storageAccountName -ForegroundColor Green
+az storage account create -n $storageAccountName -g $resourceGroupName -l $azureRegion --kind StorageV2
+
+# Create Azure Storage Table
+az storage table create --name "BackOfficeLogs" --account-name $storageAccountName
+$tblConnectionString = az storage account show-connection-string -g $resourceGroupName -n $storageAccountName --output tsv
+
 # Create Azure Container Registry
 Write-Host 'About to create Azure Container Registry: ' $acrName
 az acr create -n $acrName -g $resourceGroupName --sku Standard --admin-enabled true
 $acrUserName = $(az acr credential show -n $acrName --query username).replace('"','')
 $acrPassword = $(az acr credential show -n $acrName --query passwords[0].value).replace('"','')
-
-# Create the storage account to be used for Functions
-Write-Host 'About to create storage: ' $storageAccountName -ForegroundColor Green
-az storage account create -n $storageAccountName -g $resourceGroupName -l $azureRegion --kind StorageV2
 
 # Create Application Insights for Web Apps and Functions
 az extension add --name application-insights
@@ -115,6 +132,7 @@ Write-Host 'About to create Back Office function: ' $functionBackOfficeName -For
 az functionapp create -c $azureRegion -n $functionBackOfficeName --os-type Linux -g $resourceGroupName --runtime dotnet -s $storageAccountName --app-insights $functionBackOfficeAiName --app-insights-key $functionBackOfficeAiKey
 az functionapp config appsettings set --name $functionBackOfficeName --resource-group $resourceGroupName --settings "ServiceBusConnectionString=$serviceBusConnectionString"
 az functionapp config appsettings set --name $functionBackOfficeName --resource-group $resourceGroupName --settings "ServiceBusTopicName=$serviceBusMessageBusTopicNamePaaS"
+az functionapp config appsettings set --name $functionBackOfficeName --resource-group $resourceGroupName --settings "StorageConnectionString=$tblConnectionString"
 
 # Create Web Apps for Api Gateway and Alerts
 Write-Host 'About to create App Service Plans: ' $apiGwServicePlanName ',  ' $alertsServicePlanName -ForegroundColor Green
@@ -132,6 +150,15 @@ az webapp config appsettings set --name $alertsWebAppName --resource-group $reso
 Write-Host 'About to set ASPNETCORE_ENVIRONMENT for ApiGW: ' $apiGwWebAppName -ForegroundColor Green
 az webapp config appsettings set --name $apiGwWebAppName --resource-group $resourceGroupName --settings "ASPNETCORE_ENVIRONMENT=ProductionOnAzure"
 
+# Set Firewall rule for SQL Db
+$webAppIP = az webapp config hostname get-external-ip --webapp-name $alertsWebAppName --resource-group $resourceGroupName --output tsv
+az sql server firewall-rule create --resource-group $resourceGroupName --server $SQLServername -n AllowYourIp --start-ip-address $webAppIP --end-ip-address $webAppIP
+
+# Setup connection string to Alerts Web App
+$SQLConnectionString = az sql db show-connection-string -s $SQLServername -n $SQLDbName -c ado.net
+$SQLConnectionString = $SQLConnectionString.replace("<username>", $SQLlogin).replace("<password>", $SQLPassword)
+az webapp config appsettings set --name $alertsWebAppName --resource-group $resourceGroupName --settings "SQLServer__ConnectionString=$SQLConnectionString"
+
 # Set Environment Variables for next step in order to set GitHub Secrets needed for CI/CD pipelines
 # Connection Strings, Cosmos and Service Bus - this needed for AKS Infra, as for PaaS it is passed on Web app and Functions configuration variables
 
@@ -141,6 +168,8 @@ Write-Output "::set-output name=TMP_COSMOS_CON::$cosmosConString"
 Write-Output "::set-output name=TMP_COSMOS_DB_NAME::$cosmosDbName"
 Write-Output "::set-output name=TMP_COSMOS_CONTAINER_NAME::$cosmosDbContainerName"
 Write-Output "::set-output name=TMP_COSMOS_PARTITION_KEY::$cosmosDbPartitionKey"
+Write-Output "::set-output name=TMP_SQL_CONNECTION_STRING::$SQLConnectionString"
+Write-Output "::set-output name=TMP_AZURETABLE_CONNECTION_STRING::$tblConnectionString"
 $acrName = $acrName + ".azurecr.io"
 Write-Output "::set-output name=TMP_ACR_NAME::$acrName"
 Write-Output "::set-output name=TMP_ACR_USER_NAME::$acrUserName"

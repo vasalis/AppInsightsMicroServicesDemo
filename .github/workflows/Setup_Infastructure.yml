@@ -2,19 +2,22 @@ name: IaC_Setup_infrastructure
 
 on:
   push:
-    branches: [ main ]
+    branches: [ IaC_SQL ]
     paths:      
       - '.github/workflows/Setup_Infastructure.yml'
       - 'IaC/**'      
   pull_request:
     branches: [ main ]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   Create_PaaS_Infra:
     runs-on: ubuntu-latest
     env:
-      RESOURCE_GROUP_NAME: 'AppInsightsMicroservices_RG'
-      AZURE_REGION: 'westeurope'
+      RESOURCE_GROUP_NAME: 'MyMicroservices_Demo_RG'
+      AZURE_REGION: 'ukwest'
     steps:
     - uses: actions/checkout@v2
     - name: Login via Az module
@@ -77,8 +80,8 @@ jobs:
   Create_AKS_Infra:
     needs: Create_PaaS_Infra
     env:
-      RESOURCE_GROUP_NAME: 'AppInsightsMicroservices_RG'
-      AZURE_REGION: 'westeurope'
+      RESOURCE_GROUP_NAME: 'MyMicroservices_Demo_RG'
+      AZURE_REGION: 'ukwest'
       SP_ID: ${{secrets.AKS_SERVICE_PRINCIPAL_ID}}    
       SP_SECRET: ${{secrets.AKS_SERVICE_PRINCIPAL_SECRET}}    
     runs-on: ubuntu-latest    
@@ -89,7 +92,7 @@ jobs:
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
         enable-AzPSSession: true 
-    - name: 'Run Setup PaaS powershell'
+    - name: 'Run Setup AKS powershell'
       shell: pwsh
       run: IaC/AKS_Infra.ps1
       id: SetupAKS
