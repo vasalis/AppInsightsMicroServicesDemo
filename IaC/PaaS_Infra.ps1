@@ -9,7 +9,7 @@ Write-Host "Environment Azure CL: " az --version
 
 # Cosmos Related variables
 $storageAccountName = ($deploymentPrefix + 'storage').ToLower()
-$cosmosDbAccount = $deploymentPrefix + 'cosmosdb'
+$cosmosDbAccount = ($deploymentPrefix + 'cosmosdb').ToLower()
 $cosmosDbName = 'DevicesDatabase'
 $cosmosDbContainerName = 'Devices'
 $cosmosDbPartitionKey = '/category'
