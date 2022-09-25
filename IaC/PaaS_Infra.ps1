@@ -32,7 +32,7 @@ $functionBackOfficeName = $deploymentPrefix + 'paasboffice'
 $functionBackOfficeAiName ='paas-backofficeai'
 
 # Azure Container Registry variables
-$acrName = $deploymentPrefix + 'acr'
+$acrName = ($deploymentPrefix + 'acr').ToLower()
 
 # Web Apps Related Variables
 $apiGwServicePlanName = 'apigwsp'
