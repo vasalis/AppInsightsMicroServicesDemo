@@ -69,7 +69,7 @@ $cosmosConString = "AccountEndpoint=https://"+$cosmosDbAccount+".documents.azure
 # Create the Azure SQL Database
 az sql server create --name $SQLServername --resource-group $resourceGroupName --location $azureRegion --admin-user $SQLlogin --admin-password $SQLPassword
 # Setup the db
-az sql db create --resource-group $resourceGroupName --server $SQLServername --name $SQLDbName --edition GeneralPurpose --family Gen4 --capacity 1 --zone-redundant false
+az sql db create --resource-group $resourceGroupName --server $SQLServername --name $SQLDbName --edition GeneralPurpose --family Gen5 --capacity 1 --zone-redundant false
 
 # Create Azure Storage Table
 az storage table create --name "BackOfficeLogs" --account-name $storageAccountName
