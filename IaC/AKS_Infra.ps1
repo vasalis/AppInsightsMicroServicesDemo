@@ -25,6 +25,10 @@ $WORKSPACE=$resourceGroupName +'-LogsWorkspace'
 
 #---------------------------------------- Execution Part -----------------------------------------------------------#
 
+# Create the resource group
+Write-Host 'About to create resourse group: ' $resourceGroupName -ForegroundColor Green
+az group create -l $azureRegion -n $resourceGroupName
+
 # Create Application Insights for Web Apps and Functions
 az extension add --name application-insights
 
