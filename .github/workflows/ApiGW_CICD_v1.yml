@@ -37,7 +37,7 @@ jobs:
     needs: Build_and_deploy_to_ACR
     runs-on: ubuntu-latest
     env:      
-      APIGW_WEBAPP_NAME: appinsightsapigw
+      APIGW_WEBAPP_NAME: MyMiapigw
     steps:
       - name: Azure authentication
         uses: azure/login@v1

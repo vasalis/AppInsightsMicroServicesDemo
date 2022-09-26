@@ -37,7 +37,7 @@ jobs:
     needs: Build_and_deploy_to_ACR
     runs-on: ubuntu-latest
     env:      
-      MSALERTS_WEBAPP_NAME: appinsightsmsalerts
+      MSALERTS_WEBAPP_NAME: MyMialerts
     steps:
       - name: Azure authentication
         uses: azure/login@v1
