@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: apigw
-        image: appinsightsdp.azurecr.io/apigw:7
+        image: mymiacr.azurecr.io/apigw:10
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "ProductionOnAKS"

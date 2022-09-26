@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backoffice
-        image: appinsightsdp.azurecr.io/msbackoffice:10
+        image: mymiacr.azurecr.io/msbackoffice:20
         env:
         - name: ServiceBusConnectionString
           valueFrom:

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: alerts
-        image: appinsightsdp.azurecr.io/msalerts:10
+        image: mymiacr.azurecr.io/msalerts:15
         env:
         - name: ServiceBus__ConnectionString
           valueFrom:
@@ -29,7 +29,7 @@ spec:
               name: alertssecrets # the name of the Kubernetes secret containing the data
               key: APPINSIGHTS_INSTRUMENTATIONKEY # the key inside the Kubernetes secret containing the data
         - name: SQLServer__ConnectionString
-          value: "Server=tcp:appinsights.database.windows.net,1433;Initial Catalog=Alerts;Persist Security Info=False;User ID=vsalis;Password=AbcABC123!@#;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          value: "Server=tcp:mymisqlsrv.database.windows.net,1433;Initial Catalog=Alerts;Persist Security Info=False;User ID=vsalis;Password=TODO-ChangeThisAsap123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         imagePullPolicy: Always
         ports:
         - containerPort: 80

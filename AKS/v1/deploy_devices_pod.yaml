@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: devices
-        image: appinsightsdp.azurecr.io/msdevices:10
+        image: mymiacr.azurecr.io/msdevices:25
         resources:
           requests:            
             cpu: "1000m"
