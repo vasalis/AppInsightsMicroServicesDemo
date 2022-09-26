@@ -5,7 +5,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "appinsightsmsdevices.azurewebsites.net",
+          "Host": "mymipaasdevices.azurewebsites.net",
           "Port": 443
         }
       ],
@@ -17,7 +17,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "appinsightsmsdevices.azurewebsites.net",
+          "Host": "mymipaasdevices.azurewebsites.net",
           "Port": 443
         }
       ],
@@ -29,7 +29,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "appinsightsmsalerts.azurewebsites.net",
+          "Host": "mymialerts.azurewebsites.net",
           "Port": 443
         }
       ],
@@ -46,7 +46,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "appinsightsmsalerts.azurewebsites.net",
+          "Host": "mymialerts.azurewebsites.net",
           "Port": 443
         }
       ],
@@ -55,7 +55,7 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "appinsightsapigw.azurewebsites.net",
+    "BaseUrl": "mymiapigw.azurewebsites.net",
     "RequestIdKey": "OcRequestId",
     "AdministrationPath": "/administration"
   }

@@ -55,7 +55,7 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "20.71.67.81",
+    "BaseUrl": "51.104.42.225",
     "RequestIdKey": "OcRequestId",
     "AdministrationPath": "/administration"
   }
