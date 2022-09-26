@@ -5,7 +5,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "mymipaasdevices.azurewebsites.net",
+          "Host": "devices.internal.livelybeach-3980fa8a.northeurope.azurecontainerapps.io",
           "Port": 443
         }
       ],
@@ -17,7 +17,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "mymipaasdevices.azurewebsites.net",
+          "Host": "devices.internal.livelybeach-3980fa8a.northeurope.azurecontainerapps.io",
           "Port": 443
         }
       ],
