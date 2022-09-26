@@ -47,7 +47,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "alerts.internal.livelybeach-3980fa8a.northeurope.azurecontainerapps.io",
-          "Port": 443
+          "Port": 44
         }
       ],
       "UpstreamPathTemplate": "/NewAlert",
