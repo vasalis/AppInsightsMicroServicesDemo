@@ -22,14 +22,14 @@ spec:
               name: alertssecrets # the name of the Kubernetes secret containing the data
               key: SERVICEBUSCONNECTIONSTRING # the key inside the Kubernetes secret containing the data
         - name: ServiceBus__TopicName
-          value: "messagebusaks"
+          value: "aksmessagebus"
         - name: APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
               name: alertssecrets # the name of the Kubernetes secret containing the data
               key: APPINSIGHTS_INSTRUMENTATIONKEY # the key inside the Kubernetes secret containing the data
         - name: SQLServer__ConnectionString
-          value: "Server=tcp:mymisqlsrv.database.windows.net,1433;Initial Catalog=Alerts;Persist Security Info=False;User ID=vsalis;Password=TODO-ChangeThisAsap123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          value: "Server=tcp:mymisqlsrv.database.windows.net,1433;Database=Alerts;User ID=AdminLogin;Password=TODO-ChangeThisAsap123;Encrypt=true;Connection Timeout=30;"
         imagePullPolicy: Always
         ports:
         - containerPort: 80

@@ -22,7 +22,7 @@ spec:
               name: backofficesecrets # the name of the Kubernetes secret containing the data
               key: SERVICEBUSCONNECTIONSTRING # the key inside the Kubernetes secret containing the data
         - name: ServiceBusTopicName
-          value: "messagebusaks"
+          value: "aksmessagebus"
         - name: APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
