@@ -159,6 +159,11 @@ $SQLConnectionString = az sql db show-connection-string -s $SQLServername -n $SQ
 $SQLConnectionString = $SQLConnectionString.replace("<username>", $SQLlogin).replace("<password>", $SQLPassword)
 az webapp config appsettings set --name $alertsWebAppName --resource-group $resourceGroupName --settings "SQLServer__ConnectionString=$SQLConnectionString"
 
+# Setup also Service Bus
+az webapp config appsettings set --name $alertsWebAppName --resource-group $resourceGroupName --settings "ServiceBus__ConnectionString=$serviceBusConnectionString"
+az webapp config appsettings set --name $alertsWebAppName --resource-group $resourceGroupName --settings "ServiceBus__TopicName=$serviceBusMessageBusTopicNamePaaS"
+
+
 # Set Environment Variables for next step in order to set GitHub Secrets needed for CI/CD pipelines
 # Connection Strings, Cosmos and Service Bus - this needed for AKS Infra, as for PaaS it is passed on Web app and Functions configuration variables
 
