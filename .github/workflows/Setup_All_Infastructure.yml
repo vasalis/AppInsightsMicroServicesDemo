@@ -1,4 +1,4 @@
-name: IaC_Setup_infrastructure
+name: IaC_Setup_All_infrastructure
 
 on:
   push:

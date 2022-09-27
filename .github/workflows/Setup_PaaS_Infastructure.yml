@@ -1,4 +1,4 @@
-name: CI_CD__Devices_Microservice
+name: IaC_Setup_PaaS_infrastructure
 
 on:
   push:
