@@ -1,0 +1,63 @@
+name: IaC_Setup_infrastructure
+
+on:
+  
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:  
+  Create_AKS_Infra:    
+    env:
+      RESOURCE_GROUP_NAME: 'MyMicroservices_Demo_RG'
+      AZURE_REGION: 'ukwest'
+      SP_ID: ${{secrets.AKS_SERVICE_PRINCIPAL_ID}}    
+      SP_SECRET: ${{secrets.AKS_SERVICE_PRINCIPAL_SECRET}}    
+    runs-on: ubuntu-latest    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        enable-AzPSSession: true 
+    - name: 'Run Setup AKS powershell'
+      shell: pwsh
+      run: IaC/AKS_Infra.ps1
+      id: SetupAKS
+    - name: 'Create GitHub Secret for AKS Resource Group'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_RESOURCE_GROUP_NAME
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_RESOURCE_GROUP }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS ApiGW AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_APIGW_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_APIGW }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS Alerts AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_ALERTS_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_ALERTS }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS Devices AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_DEVICES_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_DEVICES }}
+        pa_token: ${{ secrets.PA_TOKEN }}
+    - name: 'Create GitHub Secret for AKS Back Office AI Key'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_BACK_OFFICE_AI_KEY
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_AI_BACK_OFFICE }}
+        pa_token: ${{ secrets.PA_TOKEN }}    
+    - name: 'Create GitHub Secret for AKS Resource Group'
+      uses: gliech/create-github-secret-action@v1
+      with:
+        name: AKS_CLUSTER_NAME
+        value: ${{ steps.SetupAKS.outputs.TMP_AKS_CLUSTER_NAME }}
+        pa_token: ${{ secrets.PA_TOKEN }}
