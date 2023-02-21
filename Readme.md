@@ -18,7 +18,9 @@ The idea is to:
 2. Simulate traffic, using JMeter tests, and
 3. See Application Insights Application Map which shows how a request is being propagated and processed (aka distributed tracing).
 
-There is a demo of how this works, from my session on ITProd Dev 2020 [here](https://www.youtube.com/watch?v=gYndFGtNGe0). While the demo is back on 2020, the main principles still apply. 
+**There is a demo of how this works, from my session on ITProd Dev 2020 :point_right: [here](https://www.youtube.com/watch?v=gYndFGtNGe0)**.
+
+While the demo is back on 2020, the main principles still apply. 
 What is updated are the deployment options for the Microservices, with the recent add of Azure Container Apps.
 
 ## Starting with
